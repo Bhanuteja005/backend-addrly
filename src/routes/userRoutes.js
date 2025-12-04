@@ -3,6 +3,7 @@ import userController from '../controllers/userController.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validateRequest, schemas } from '../middleware/validation.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { authenticateUser } from '../config/auth.js';
 
 const router = express.Router();
 
@@ -52,6 +53,7 @@ router.post(
 // Onboarding endpoint
 router.post(
   '/onboarding',
+  authenticateUser,
   asyncHandler(userController.completeOnboarding)
 );
 

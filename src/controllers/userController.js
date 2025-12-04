@@ -725,15 +725,14 @@ class UserController {
 
       // Check if profile already exists
       const { data: existingProfile } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
-        .eq('auth_user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       const profileData = {
-        auth_user_id: userId,
-        email: req.user?.email || req.body.email,
-        name: full_name,
+        id: userId,
+        full_name,
         age,
         gender,
         location,
@@ -758,9 +757,9 @@ class UserController {
       if (existingProfile) {
         // Update existing profile
         const { data, error } = await supabaseAdmin
-          .from('user_profiles')
+          .from('profiles')
           .update(profileData)
-          .eq('auth_user_id', userId)
+          .eq('id', userId)
           .select()
           .single();
 
@@ -770,7 +769,7 @@ class UserController {
         // Create new profile
         profileData.created_at = new Date().toISOString();
         const { data, error } = await supabaseAdmin
-          .from('user_profiles')
+          .from('profiles')
           .insert([profileData])
           .select()
           .single();
