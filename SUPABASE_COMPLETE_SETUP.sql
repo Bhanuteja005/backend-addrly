@@ -148,7 +148,34 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Add triggers
+-- Create product_waitlist table
+CREATE TABLE product_waitlist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  source_type TEXT DEFAULT 'application', -- 'application', 'manual', 'signup'
+  source_reference TEXT, -- Reference to where this entry came from (e.g., application_id)
+  status TEXT DEFAULT 'active', -- 'active', 'unsubscribed', 'converted'
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for product_waitlist
+CREATE INDEX idx_product_waitlist_email ON product_waitlist(email);
+CREATE INDEX idx_product_waitlist_status ON product_waitlist(status);
+CREATE INDEX idx_product_waitlist_created_at ON product_waitlist(created_at);
+
+-- Enable RLS for product_waitlist
+ALTER TABLE product_waitlist ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for product_waitlist
+CREATE POLICY "Enable all for service role" ON product_waitlist FOR ALL USING (true);
+
+-- Add trigger for product_waitlist
+CREATE TRIGGER update_product_waitlist_updated_at BEFORE UPDATE ON product_waitlist FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add existing triggers
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_date_me_docs_updated_at BEFORE UPDATE ON date_me_docs FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_applications_updated_at BEFORE UPDATE ON applications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
